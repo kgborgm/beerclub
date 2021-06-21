@@ -20,8 +20,8 @@ app.get('/', async(req, res) => {
 app.get('/api/members', async(req, res) => {
 	try {
 		const db = await csvdb("beerclubdata.csv", ["member", "beer-style", "date"], ",");
-		const members = await db.get();
-		res.send(members);
+		const result = await db.get();
+		res.status(200).send(result);
 	} catch (err) {
 		console.error("Error in getting members", err);
 		res.sendStatus(500);
@@ -43,7 +43,7 @@ app.get('/api/consumptions/:member', async (req, res) => {
 	try {
 		const db = await csvdb("beerclubdata.csv", ["member", "beer-style", "date"], ",");
 		const results = await db.get({member: req.params.member});
-		res.send(members);
+		res.send(members.length);
 	} catch (err) {
 		console.error("Error in getting consumptions", err);
 		res.sendStatus(500);
