@@ -11,6 +11,7 @@ import {
 } from 'react-bootstrap';
 import PieChart from './components/PieChart';
 import React from 'react';
+import { makeCancelable } from "./helpers/useCancelablePromise";
 
 class App extends React.Component {
   constructor(props) {
@@ -26,8 +27,12 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    // Get all beer club members
-    this.getMembers();
+    /**
+     * Get all beer club members
+     * Use makeCancelable code so that promises are cancelable in case user were to navigate away from the page 
+     * (this is more to reduce warnings in tests and follow best practices since this is a single page app)
+     * */ 
+    makeCancelable(this.getMembers());
   }
 
   /**
@@ -42,25 +47,31 @@ class App extends React.Component {
     //call API
     const members = await getMembers();
     const consumers = [];
-    //get an array of just hte member property
-    const names = members.map(({ member }) => member);
-    //get a distinct list of names
-    const distinctNames = [...new Set(names)];
-    distinctNames.forEach(name => {
-      const totalConsumption = members.filter((obj) => obj.member === name).length;
-      consumers.push({
-        name: name,
-        count: totalConsumption,
-        selected: false
+
+    if (members.length > 0) {
+      //get an array of just the member property
+      const names = members.map(({ member }) => member);
+      //get a distinct list of names
+      const distinctNames = [...new Set(names)];
+      distinctNames.forEach(name => {
+        const totalConsumption = members.filter((obj) => obj.member === name).length;
+        consumers.push({
+          name: name,
+          count: totalConsumption,
+          selected: false
+        });
       });
-    });
+    }
+
+    if(consumers.length > 0) {
+      //on initial load of page, the first name in the list is selected
+      this.selectConsumer(consumers[0]);
+    }
+
     this.setState({
       isLoaded: true,
-      consumer: consumers[0],
       consumers: consumers
     });
-    //on initial load of page, the first name in the list is selected
-    this.selectConsumer(consumers[0]);
   }
 
   /**
@@ -77,13 +88,17 @@ class App extends React.Component {
       promises.push(getConsumptions(consumer.name, beer));
     });
     Promise.all(promises).then((values) => {
-      console.log(values);
-      const result = values.map(x => [x[0]['beer-style'], x.length]);
-      result.unshift(['Beer Style', 'Number Consumed']);
+      let data = [];
+      if(values.length > 0) {
+        data = values.map(x => [x[0]['beer-style'], x.length]);
+      }
+      data.unshift(['Beer Style', 'Number Consumed']);
       this.setState({
         consumer: consumer,
-        pieChartData: result
+        pieChartData: data
       });
+    }).catch((e) => {
+      console.error(e);
     });
   }
 
@@ -114,7 +129,7 @@ class App extends React.Component {
               <h3 className="float-left">Consumption per Member:</h3>
             </Col>
             <Col>
-              <h4 className="float-left">Beer Consumed by {consumer.name}</h4>
+              <h4 className="float-left">Beer Consumed by {consumer.name ? consumer.name : 'ERROR GETTING CONSUMER'}</h4>
             </Col>
           </Row>
           <Row>
@@ -133,8 +148,8 @@ class App extends React.Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {consumers.map(consumer => (
-                    <tr onClick={() => this.selectConsumer(consumer)}>
+                  {consumers.map((consumer, index) => (
+                    <tr key={index} onClick={() => this.selectConsumer(consumer)}>
                       <td>{consumer.name}</td>
                       <td>{consumer.count}</td>
                     </tr>
