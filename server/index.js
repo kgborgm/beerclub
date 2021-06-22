@@ -28,22 +28,23 @@ app.get('/api/members', async(req, res) => {
 	}
 })
 
-app.get('/api/beer-styles/:member', async(req, res) => {
+app.get('/api/beers/:member', async(req, res) => {
 	try {
 		const db = await csvdb("beerclubdata.csv", ["member", "beer-style", "date"], ",");
 		const results = await db.get({member: req.params.member});
-		res.send(results);
+		res.status(200).send(results);
 	} catch (err) {
 		console.error("Error in getting beer styles", err);
 		res.sendStatus(500);
 	}
 })
 
-app.get('/api/consumptions/:member', async (req, res) => {
+app.get('/api/consumptions/:member/:beer', async (req, res) => {
 	try {
 		const db = await csvdb("beerclubdata.csv", ["member", "beer-style", "date"], ",");
-		const results = await db.get({member: req.params.member});
-		res.send(members.length);
+		const beers = await db.get({member: req.params.member});
+		const results = beers.filter((obj) => obj["beer-style"] === req.params.beer);
+		res.status(200).send(results);
 	} catch (err) {
 		console.error("Error in getting consumptions", err);
 		res.sendStatus(500);

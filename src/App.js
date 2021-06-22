@@ -1,5 +1,5 @@
 import './App.css';
-import {getMembers} from "./api/api";
+import { getMembers, getBeerStyles, getConsumptions } from "./api/api";
 import logo from './tavour_logo_1.png';
 import {
   Container,
@@ -8,7 +8,6 @@ import {
   Navbar,
   Table
 } from 'react-bootstrap';
-import MemberTable from './components/MemberTable';
 import PieChart from './components/PieChart';
 import React from 'react';
 
@@ -20,7 +19,8 @@ class App extends React.Component {
       error: null,
       isLoaded: false,
       consumers: [],
-      consumer: {}
+      consumer: {},
+      pieChartData: []
     };
   }
 
@@ -53,24 +53,37 @@ class App extends React.Component {
         selected: false
       });
     });
-    //on initial load of page, the first name in the list is selected
-    consumers[0].selected = true;
     this.setState({
       isLoaded: true,
-      consumers: consumers,
-      consumer: consumers[0]
+      consumer: consumers[0],
+      consumers: consumers
     });
+    //on initial load of page, the first name in the list is selected
+    this.selectConsumer(consumers[0]);
   }
 
-  selectConsumer(consumer) {
-    console.log("CONSUMER SELECTED");
-    this.setState({
-      consumer: consumer
+  async selectConsumer(consumer) {
+    const memberBeers = await getBeerStyles(consumer.name);
+    const beers = memberBeers.map(obj => obj['beer-style']);
+    const distinctBeers = [...new Set(beers)];
+    const promises = [];
+    distinctBeers.forEach(beer => {
+      //returns number of consumptions for that particular beer style and member
+      promises.push(getConsumptions(consumer.name, beer));
+    });
+    Promise.all(promises).then((values) => {
+      console.log(values);
+      const result = values.map(x => [x[0]['beer-style'], x.length]);
+      result.unshift(['Beer Style', 'Number Consumed']);
+      this.setState({
+        consumer: consumer,
+        pieChartData: result
+      });
     });
   }
 
   render() {
-    const { error, isLoaded, consumers, consumer } = this.state;
+    const { error, isLoaded, consumers, consumer, pieChartData } = this.state;
     return (
       <div className="App">
         <Navbar bg="dark" variant="dark">
@@ -107,7 +120,7 @@ class App extends React.Component {
                 </thead>
                 <tbody>
                   {consumers.map(consumer => (
-                    <tr onClick={() => this.selectConsumer(consumer)} className={consumer.selected ? 'MemberTable-row-selected' : ''}>
+                    <tr onClick={() => this.selectConsumer(consumer)}>
                       <td>{consumer.name}</td>
                       <td>{consumer.count}</td>
                     </tr>
@@ -116,7 +129,7 @@ class App extends React.Component {
               </Table>
             </Col>
             <Col>
-              <PieChart consumer={consumer} isLoaded={isLoaded} error={error}/>
+              <PieChart consumer={consumer} pieChartData={pieChartData} isLoaded={isLoaded} error={error} />
             </Col>
           </Row>
 
