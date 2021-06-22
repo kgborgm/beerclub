@@ -63,6 +63,10 @@ class App extends React.Component {
     this.selectConsumer(consumers[0]);
   }
 
+  /**
+   * On selectConsumer update the state variables to change the pie chart statistics
+   * @param {*} consumer 
+   */
   async selectConsumer(consumer) {
     const memberBeers = await getBeerStyles(consumer.name);
     const beers = memberBeers.map(obj => obj['beer-style']);
