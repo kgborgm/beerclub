@@ -111,7 +111,7 @@ class App extends React.Component {
           </Row>
           <Row>
             <Col>
-              <h3 className="float-left">Consumptions per Member:</h3>
+              <h3 className="float-left">Consumption per Member:</h3>
             </Col>
             <Col>
               <h4 className="float-left">Beer Consumed by {consumer.name}</h4>
@@ -122,7 +122,7 @@ class App extends React.Component {
               <Badge variant="info" className="float-left">Select a row from the table to view a different member</Badge>
             </Col>
           </Row>
-          <Row />
+          <br />
           <Row>
             <Col>
               <Table striped bordered hover size="sm">
