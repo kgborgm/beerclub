@@ -18,18 +18,11 @@ class PieChart extends React.Component {
         } else {
             return (
                 <Chart
-                    width={"500px"}
-                    height={"300px"}
+                    width={"700px"}
+                    height={"500px"}
                     chartType="PieChart"
                     loader={<div>Loading Chart</div>}
                     data={this.props.pieChartData}
-                    options={
-                        // Chart options
-                        {
-                            title: "Beer Consumed by " + this.props.consumer.name
-                        }
-                    }
-
                     legendToggle
                 />
             );

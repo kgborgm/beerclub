@@ -2,6 +2,7 @@ import './App.css';
 import { getMembers, getBeerStyles, getConsumptions } from "./api/api";
 import logo from './tavour_logo_1.png';
 import {
+  Badge,
   Container,
   Row,
   Col,
@@ -108,7 +109,16 @@ class App extends React.Component {
             <Col>
               <h3 className="float-left">Consumptions per Member:</h3>
             </Col>
+            <Col>
+              <h4 className="float-left">Beer Consumed by {consumer.name}</h4>
+            </Col>
           </Row>
+          <Row>
+            <Col>
+              <Badge variant="info" className="float-left">Select a row from the table to view a different member</Badge>
+            </Col>
+          </Row>
+          <Row />
           <Row>
             <Col>
               <Table striped bordered hover size="sm">
